@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Vigilancia Histórica — Latinoamérica</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Segoe UI',Arial,sans-serif}
+.hdr{background:linear-gradient(135deg,#1F4E79,#2E75B6);color:#fff;padding:10px 20px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px}
+.hdr h1{font-size:16px;font-weight:600}.hdr p{font-size:11px;opacity:.8}
+.nav{display:flex;gap:4px;flex-wrap:wrap}
+.nav button{background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.25);color:#fff;padding:5px 13px;border-radius:6px;cursor:pointer;font-size:12px;transition:all .2s}
+.nav button:hover,.nav button.active{background:#fff;color:#1F4E79;font-weight:600}
+#map{height:calc(100vh - 46px);width:100%}
+.leaflet-popup-content-wrapper{border-radius:12px;box-shadow:0 4px 20px rgba(0,0,0,.2);padding:0;overflow:hidden}
+.leaflet-popup-content{margin:0;padding:0;min-width:300px;max-width:360px}
+.pp-top{min-height:62px;display:flex;align-items:center;gap:10px;padding:10px 14px}
+.pp-ico{width:38px;height:38px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:22px;background:rgba(255,255,255,.2);flex-shrink:0}
+.pp-tm h3{font-size:13px;font-weight:600;color:#fff;line-height:1.3;margin:0}.pp-tm small{font-size:10px;color:rgba(255,255,255,.85)}
+.pp-body{padding:8px 14px 12px}
+.pp-code{display:inline-block;background:#1F4E79;color:#fff;font-size:9px;padding:1px 6px;border-radius:3px;margin-bottom:4px}
+.sp{display:inline-block;font-size:9px;padding:2px 7px;border-radius:10px;font-weight:600;margin-left:5px}
+.pp-r{font-size:11px;margin:3px 0;color:#444;line-height:1.4}.pp-r b{color:#1F4E79}
+.pp-obj{font-size:10px;color:#555;margin-top:6px;padding:6px 8px;background:#f0f4f8;border-radius:5px;border-left:3px solid #1F4E79;line-height:1.4}
+.pp-adj{margin-top:5px;font-size:10px;color:#1a5276;font-weight:600;padding:4px 0}
+.lgd{position:absolute;bottom:20px;left:10px;background:rgba(255,255,255,.96);backdrop-filter:blur(8px);padding:8px 12px;border-radius:10px;box-shadow:0 2px 10px rgba(0,0,0,.14);z-index:1000;max-width:210px}
+.lgd-title{font-size:11px;color:#1F4E79;font-weight:600;margin-bottom:6px;cursor:pointer;display:flex;align-items:center;justify-content:space-between}
+.lgd-grid{display:flex;flex-direction:column;gap:4px}
+.lgd-chip{display:flex;align-items:center;gap:6px;font-size:10px;color:#333;background:#f4f6f8;padding:3px 8px 3px 4px;border-radius:5px}
+.ci{width:20px;height:20px;border-radius:5px;display:flex;align-items:center;justify-content:center;font-size:12px;flex-shrink:0}
+.lgd.collapsed .lgd-grid{display:none}
+.sidebar{position:absolute;top:0;right:0;width:270px;height:100%;background:#fff;z-index:1001;overflow-y:auto;border-left:1px solid #ddd;display:none}
+.sidebar.open{display:block}
+.sidebar h3{padding:8px 12px;background:#1F4E79;color:#fff;font-size:12px;position:sticky;top:0;display:flex;justify-content:space-between;align-items:center;z-index:2}
+.sidebar h3 span{cursor:pointer;font-size:16px}
+.pi{padding:6px 10px;border-bottom:1px solid #f0f0f0;cursor:pointer;display:flex;align-items:center;gap:7px;transition:background .15s}
+.pi:hover{background:#f4f7fa}
+.mic{width:22px;height:22px;border-radius:5px;display:flex;align-items:center;justify-content:center;font-size:13px;color:#fff;flex-shrink:0}
+.pn{font-weight:600;color:#1F4E79;font-size:10px;line-height:1.2}
+.pc{font-size:9px;color:#999}
+</style>
+</head>
+<body>
+<div class="hdr">
+  <div><h1>Vigilancia Histórica de Proyectos — Latinoamérica</h1><p>BRT · Cables Aéreos · Férreos | 1972–2026 · 58 proyectos</p></div>
+  <div class="nav">
+    <button class="active" onclick="sv('all',this)">🌎 Todos</button>
+    <button onclick="sv('col',this)">🇨🇴 Colombia</button>
+    <button onclick="sv('bra',this)">🇧🇷 Brasil</button>
+    <button onclick="sv('mex',this)">🇲🇽 México</button>
+    <button onclick="sv('per',this)">🇵🇪 Perú</button>
+    <button onclick="sv('brt',this)">🚌 BRT</button>
+    <button onclick="sv('cable',this)">🚡 Cables</button>
+    <button onclick="sv('ferreo',this)">🚇 Férreos</button>
+    <button onclick="document.getElementById('sb').classList.toggle('open')">☰ Lista</button>
+  </div>
+</div>
+<div style="position:relative">
+<div id="map"></div>
+<div id="lgd" class="lgd">
+  <div class="lgd-title" onclick="this.parentElement.classList.toggle('collapsed')">Leyenda <span>▾</span></div>
+  <div class="lgd-grid">
+    <div class="lgd-chip"><div class="ci" style="background:#E8541A">🚌</div>BRT / Corredores</div>
+    <div class="lgd-chip"><div class="ci" style="background:#1A7EA8">🚡</div>Cable aéreo / Teleférico</div>
+    <div class="lgd-chip"><div class="ci" style="background:#6B35A8">🚇</div>Férreo / Metro</div>
+    <hr style="border:none;border-top:0.5px solid #ddd;margin:3px 0">
+    <div class="lgd-chip"><div class="ci" style="background:#16a34a;font-size:8px">●</div><span>Operando</span></div>
+    <div class="lgd-chip"><div class="ci" style="background:#d97706;font-size:8px">●</div><span>En construcción / ejecución</span></div>
+    <div class="lgd-chip"><div class="ci" style="background:#dc2626;font-size:8px">●</div><span>Cancelado</span></div>
+    <div class="lgd-chip"><div class="ci" style="background:#6b7280;font-size:8px">●</div><span>En estructuración</span></div>
+  </div>
+</div>
+<div id="sb" class="sidebar">
+  <h3>Lista de proyectos <span onclick="document.getElementById('sb').classList.remove('open')">✕</span></h3>
+  <div id="pl"></div>
+</div>
+</div>
+<script>
+function getCat(tipo){
+  if(tipo.includes('Cable')||tipo.includes('elef')) return {color:'#1A7EA8',icon:'🚡'};
+  if(tipo.includes('rreo')||tipo.includes('Metro')||tipo.includes('Tranv')||tipo.includes('Tren')||tipo.includes('norriel')) return {color:'#6B35A8',icon:'🚇'};
+  return {color:'#E8541A',icon:'🚌'};
+}
+function scol(e){
+  if(!e) return '#6b7280';
+  var s=e.toLowerCase();
+  if(s.includes('operand')||s.includes('operaci')) return '#16a34a';
+  if(s.includes('ejecuci')||s.includes('construcci')||s.includes('adjudic')||s.includes('licitaci')) return '#d97706';
+  if(s.includes('cancelad')) return '#dc2626';
+  return '#6b7280';
+}
+function slbl(e){
+  if(!e) return '';
+  var s=e.toLowerCase();
+  if(s.includes('operand')||s.includes('operaci')) return 'Operando';
+  if(s.includes('adjudic')) return 'Adjudicado';
+  if(s.includes('licitaci')) return 'En licitación';
+  if(s.includes('ejecuci')||s.includes('construcci')) return 'En construcción';
+  if(s.includes('cancelad')) return 'Cancelado';
+  if(s.includes('estructuraci')) return 'En estructuración';
+  return e;
+}
+
+var D=[
+  // BRT
+  {id:'LA-B01',tipo:'BRT',pais:'Brasil',proyecto:'RIT (Curitiba)',entidad:'URBS',objeto:'Sistema pionero de BRT — Red Integrada de Transporte de Curitiba',estado:'Operación',fecha:'1972',adj:'URBS',ciudad:'Curitiba, Brasil',la:-25.428,lo:-49.273},
+  {id:'LA-B02',tipo:'BRT',pais:'Brasil',proyecto:'SPTrans Corredores (ABD)',entidad:'SPTrans / EMTU',objeto:'Red de corredores segregados de autobús en São Paulo',estado:'Operación',fecha:'1980',adj:'SPTrans / EMTU',ciudad:'São Paulo, Brasil',la:-23.549,lo:-46.633},
+  {id:'LA-B03',tipo:'BRT',pais:'Brasil',proyecto:'Eixo Anhanguera (Goiânia)',entidad:'Metrobus / CMTC',objeto:'Corredor BRT Eixo Anhanguera integrado al sistema de transporte',estado:'Operación',fecha:'1990',adj:'Metrobus / CMTC',ciudad:'Goiânia, Brasil',la:-16.686,lo:-49.264},
+  {id:'LA-B04',tipo:'BRT',pais:'Brasil',proyecto:'Corredores POA (Porto Alegre)',entidad:'EPTC',objeto:'Corredores troncales de buses con carriles exclusivos',estado:'Operación',fecha:'1990',adj:'EPTC',ciudad:'Porto Alegre, Brasil',la:-30.033,lo:-51.230},
+  {id:'LA-B05',tipo:'BRT',pais:'Ecuador',proyecto:'Trolebús / Ecovía (Quito)',entidad:'EPMTPQ',objeto:'Corredores BRT con trolebús y articulados en Quito',estado:'Operación',fecha:'1995',adj:'EPMTPQ',ciudad:'Quito, Ecuador',la:-0.220,lo:-78.512},
+  {id:'LA-B06',tipo:'BRT',pais:'Colombia',proyecto:'TransMilenio (Bogotá)',entidad:'TransMilenio S.A.',objeto:'Sistema masivo BRT de Bogotá, red de troncales y alimentadoras',estado:'Operación',fecha:'1998',adj:'TransMilenio S.A.',ciudad:'Bogotá, Colombia',la:4.680,lo:-74.064},
+  {id:'LA-B07',tipo:'BRT',pais:'Colombia',proyecto:'MIO (Cali)',entidad:'Metrocali',objeto:'Sistema masivo de transporte integrado BRT de Cali',estado:'Operación',fecha:'2004',adj:'Metrocali',ciudad:'Cali, Colombia',la:3.420,lo:-76.530},
+  {id:'LA-B08',tipo:'BRT',pais:'Colombia',proyecto:'Metroplús (Medellín)',entidad:'Metro de Medellín',objeto:'Corredores BRT integrados al sistema metro del Valle de Aburrá',estado:'Operación',fecha:'2006',adj:'Metro de Medellín',ciudad:'Medellín, Colombia',la:6.230,lo:-75.590},
+  {id:'LA-B09',tipo:'BRT',pais:'Colombia',proyecto:'Transmetro (Barranquilla)',entidad:'Transmetro S.A.S.',objeto:'Sistema integrado de transporte masivo BRT de Barranquilla',estado:'Operación',fecha:'2004',adj:'Transmetro S.A.S.',ciudad:'Barranquilla, Colombia',la:10.980,lo:-74.800},
+  {id:'LA-B10',tipo:'BRT',pais:'Colombia',proyecto:'Metrolínea (Bucaramanga)',entidad:'Metrolínea',objeto:'Sistema integrado de transporte masivo BRT del Área Metropolitana',estado:'Operación',fecha:'2006',adj:'Metrolínea',ciudad:'Bucaramanga, Colombia',la:7.130,lo:-73.125},
+  {id:'LA-B11',tipo:'BRT',pais:'Colombia',proyecto:'Megabús (Pereira)',entidad:'Megabús S.A.',objeto:'Sistema integrado de transporte masivo BRT Pereira–Dosquebradas',estado:'Operación',fecha:'2004',adj:'Megabús S.A.',ciudad:'Pereira, Colombia',la:4.813,lo:-75.694},
+  {id:'LA-B12',tipo:'BRT',pais:'Colombia',proyecto:'Transcaribe (Cartagena)',entidad:'Transcaribe',objeto:'Sistema integrado de transporte masivo BRT de Cartagena',estado:'Operación',fecha:'2006',adj:'Transcaribe',ciudad:'Cartagena, Colombia',la:10.400,lo:-75.510},
+  {id:'LA-B13',tipo:'BRT',pais:'Venezuela',proyecto:'BusCaracas',entidad:'Metro de Caracas',objeto:'Sistema BRT de Caracas integrado al metro',estado:'Operación',fecha:'2008',adj:'Metro de Caracas',ciudad:'Caracas, Venezuela',la:10.480,lo:-66.900},
+  {id:'LA-B14',tipo:'BRT',pais:'Venezuela',proyecto:'Tromerca (Mérida)',entidad:'Tromerca',objeto:'Sistema de transporte BRT en Mérida',estado:'Operación',fecha:'2005',adj:'Tromerca',ciudad:'Mérida, Venezuela',la:8.598,lo:-71.144},
+  {id:'LA-B15',tipo:'BRT',pais:'Venezuela',proyecto:'Transbarca (Barquisimeto)',entidad:'Transbarca',objeto:'Sistema de transporte BRT en Barquisimeto',estado:'Operación',fecha:'2005',adj:'Transbarca',ciudad:'Barquisimeto, Venezuela',la:10.068,lo:-69.359},
+  {id:'LA-B16',tipo:'BRT',pais:'Ecuador',proyecto:'Metrovía (Guayaquil)',entidad:'Fundación Metrovía',objeto:'Sistema BRT de Guayaquil con corredores exclusivos',estado:'Operación',fecha:'2004',adj:'Fundación Metrovía',ciudad:'Guayaquil, Ecuador',la:-2.170,lo:-79.922},
+  {id:'LA-B17',tipo:'BRT',pais:'Perú',proyecto:'Metropolitano (Lima)',entidad:'ATU',objeto:'Corredor BRT Lima con estaciones elevadas y articulados',estado:'Operación',fecha:'2006',adj:'ATU',ciudad:'Lima, Perú',la:-12.046,lo:-77.042},
+  {id:'LA-B18',tipo:'BRT',pais:'Brasil',proyecto:'MOVE (Belo Horizonte)',entidad:'BHTRANS',objeto:'Sistema BRT de Belo Horizonte para Copa del Mundo 2014',estado:'Operación',fecha:'2010',adj:'BHTRANS',ciudad:'Belo Horizonte, Brasil',la:-19.916,lo:-43.934},
+  {id:'LA-B19',tipo:'BRT',pais:'Brasil',proyecto:'Via Livre (Recife)',entidad:'Grande Recife Consórcio',objeto:'Sistema BRT de Recife con corredores exclusivos',estado:'Operación',fecha:'2012',adj:'Grande Recife Consórcio',ciudad:'Recife, Brasil',la:-8.054,lo:-34.881},
+  {id:'LA-B20',tipo:'BRT',pais:'Brasil',proyecto:'Expresso DF (Brasilia)',entidad:'DFTrans',objeto:'Sistema BRT del Distrito Federal brasileño',estado:'Operación',fecha:'2011',adj:'DFTrans',ciudad:'Brasilia, Brasil',la:-15.779,lo:-47.929},
+  {id:'LA-B21',tipo:'BRT',pais:'Brasil',proyecto:'BRT Campinas',entidad:'EMDEC',objeto:'Sistema BRT en Campinas con corredores segregados',estado:'Operación',fecha:'2016',adj:'EMDEC',ciudad:'Campinas, Brasil',la:-22.905,lo:-47.063},
+  {id:'LA-B22',tipo:'BRT',pais:'Brasil',proyecto:'BRT Fortaleza',entidad:'ETUFOR',objeto:'Corredores de transporte masivo BRT en Fortaleza',estado:'Operación',fecha:'2014',adj:'ETUFOR',ciudad:'Fortaleza, Brasil',la:-3.717,lo:-38.543},
+  {id:'LA-B23',tipo:'BRT',pais:'Brasil',proyecto:'BRT Belém',entidad:'Semob',objeto:'Sistema BRT en Belém del Pará',estado:'Operación',fecha:'2012',adj:'Semob',ciudad:'Belém, Brasil',la:-1.455,lo:-48.490},
+  {id:'LA-B24',tipo:'BRT',pais:'Brasil',proyecto:'TransOceânica / BHLS (Niterói)',entidad:'Niterói Transportes',objeto:'Sistema BRT Niterói–Maricá corredor de alta velocidad',estado:'Operación',fecha:'2015',adj:'Niterói Transportes',ciudad:'Niterói, Brasil',la:-22.883,lo:-43.104},
+  {id:'LA-B25',tipo:'BRT',pais:'Bolivia',proyecto:'BRT Santa Cruz',entidad:'No disponible',objeto:'Sistema BRT proyectado para Santa Cruz de la Sierra',estado:'Cancelado',fecha:'2019',adj:'No disponible',ciudad:'Santa Cruz, Bolivia',la:-17.783,lo:-63.182},
+  {id:'LA-B26',tipo:'BRT',pais:'Guatemala',proyecto:'Transmetro (Guatemala)',entidad:'Municipalidad de Guatemala',objeto:'Sistema BRT de Ciudad de Guatemala con carriles exclusivos',estado:'Operación',fecha:'2005',adj:'Municipalidad de Guatemala',ciudad:'Ciudad de Guatemala, Guatemala',la:14.641,lo:-90.513},
+  {id:'LA-B27',tipo:'BRT',pais:'El Salvador',proyecto:'SITRAMSS (San Salvador)',entidad:'VMT / Consorcios',objeto:'Sistema integrado de transporte masivo de San Salvador',estado:'Cancelado',fecha:'2013',adj:'VMT / Consorcios',ciudad:'San Salvador, El Salvador',la:13.692,lo:-89.218},
+  {id:'LA-B28',tipo:'BRT',pais:'Honduras',proyecto:'Trans 450 (Tegucigalpa)',entidad:'No disponible',objeto:'Sistema BRT proyectado para Tegucigalpa',estado:'Cancelado',fecha:'2010',adj:'No disponible',ciudad:'Tegucigalpa, Honduras',la:14.099,lo:-87.206},
+  {id:'LA-B29',tipo:'BRT',pais:'Nicaragua',proyecto:'Corredores IRTRANMA (Managua)',entidad:'IRTRANMA',objeto:'Corredores troncales de transporte masivo en Managua',estado:'Operación',fecha:'2020',adj:'IRTRANMA',ciudad:'Managua, Nicaragua',la:12.114,lo:-86.236},
+  {id:'LA-B30',tipo:'BRT',pais:'Costa Rica',proyecto:'Sistema de Sectorización (San José)',entidad:'No disponible',objeto:'Corredores segregados en área metropolitana de San José',estado:'En estructuración',fecha:'2020',adj:'No disponible',ciudad:'San José, Costa Rica',la:9.935,lo:-84.084},
+  {id:'LA-B31',tipo:'BRT',pais:'Panamá',proyecto:'Metro Bus (Ciudad de Panamá)',entidad:'MiBus',objeto:'Sistema de transporte troncal integrado de la Ciudad de Panamá',estado:'Operación',fecha:'2010',adj:'MiBus',ciudad:'Ciudad de Panamá, Panamá',la:8.994,lo:-79.519},
+  {id:'LA-B32',tipo:'BRT',pais:'Puerto Rico',proyecto:'AMA / BRT PR-52 (San Juan)',entidad:'No disponible',objeto:'Sistema BRT en el corredor PR-52 de San Juan',estado:'En estructuración',fecha:'2020',adj:'No disponible',ciudad:'San Juan, Puerto Rico',la:18.466,lo:-66.105},
+  {id:'LA-B33',tipo:'BRT',pais:'Jamaica',proyecto:'JUTC Express / BRT (Kingston)',entidad:'No disponible',objeto:'Sistema troncal de transporte masivo en Kingston',estado:'En estructuración',fecha:'2023',adj:'No disponible',ciudad:'Kingston, Jamaica',la:17.997,lo:-76.793},
+  // CABLES
+  {id:'LA-C01',tipo:'Cable aéreo',pais:'Colombia',proyecto:'Metrocable Medellín (Línea K)',entidad:'Metro de Medellín',objeto:'Sistema de cables urbanos integrado al metro, sector nororiental',estado:'Operando',fecha:'2002',adj:'POMA / Metro Medellín',ciudad:'Medellín, Colombia',la:6.293,lo:-75.554},
+  {id:'LA-C02',tipo:'Cable aéreo',pais:'Colombia',proyecto:'Cable San Cristóbal (Bogotá)',entidad:'TransMilenio S.A.',objeto:'Cable aéreo urbano en San Cristóbal, integrado al SITP',estado:'En construcción',fecha:'2023',adj:'No disponible',ciudad:'Bogotá, Colombia',la:4.555,lo:-74.095},
+  {id:'LA-C03',tipo:'Cable aéreo',pais:'Colombia',proyecto:'Cable Manizales',entidad:'Infi-Manizales',objeto:'Sistema de cables urbanos de Manizales',estado:'Operando',fecha:'2008',adj:'Leitner',ciudad:'Manizales, Colombia',la:5.070,lo:-75.518},
+  {id:'LA-C04',tipo:'Cable aéreo',pais:'Colombia',proyecto:'MIO Cable (Siloé, Cali)',entidad:'Metrocali',objeto:'Cable aéreo integrado al MIO en ladera Siloé',estado:'Operando',fecha:'2010',adj:'Metrocali',ciudad:'Cali, Colombia',la:3.455,lo:-76.556},
+  {id:'LA-C05',tipo:'Cable aéreo',pais:'Venezuela',proyecto:'Metrocable Caracas',entidad:'Metro Caracas',objeto:'Sistema de teleférico urbano integrado al metro de Caracas',estado:'Operando',fecha:'2007',adj:'Metro Caracas',ciudad:'Caracas, Venezuela',la:10.495,lo:-66.887},
+  {id:'LA-C06',tipo:'Cable aéreo',pais:'Ecuador',proyecto:'Aerovía Guayaquil',entidad:'Municipio de Guayaquil',objeto:'Cable aéreo sobre el río Guayas, Guayaquil',estado:'Operando',fecha:'2018',adj:'POMA',ciudad:'Guayaquil, Ecuador',la:-2.165,lo:-79.932},
+  {id:'LA-C07',tipo:'Cable aéreo',pais:'Bolivia',proyecto:'Mi Teleférico (La Paz)',entidad:'Empresa Estatal de Transporte por Cable',objeto:'Sistema de teleférico urbano de La Paz–El Alto, mayor del mundo',estado:'Operando',fecha:'2012',adj:'Empresa Estatal',ciudad:'La Paz, Bolivia',la:-16.500,lo:-68.147},
+  {id:'LA-C08',tipo:'Cable aéreo',pais:'México',proyecto:'Mexicable (Ecatepec)',entidad:'SITRAMYTEM',objeto:'Cable aéreo urbano en Ecatepec, Estado de México',estado:'Operando',fecha:'2014',adj:'SITRAMYTEM',ciudad:'Ecatepec, México',la:19.601,lo:-99.050},
+  {id:'LA-C09',tipo:'Cable aéreo',pais:'México',proyecto:'Mexicable Línea 3 (Naucalpan)',entidad:'SITRAMYTEM',objeto:'Tercera línea de cable aéreo en el Estado de México',estado:'En construcción',fecha:'2023',adj:'SITRAMYTEM',ciudad:'Naucalpan, México',la:19.476,lo:-99.237},
+  {id:'LA-C10',tipo:'Cable aéreo',pais:'Guatemala',proyecto:'AeroMetro Guatemala',entidad:'Municipalidad de Guatemala',objeto:'Cable aéreo urbano Guatemala–Mixco',estado:'En construcción',fecha:'2020',adj:'Doppelmayr',ciudad:'Guatemala / Mixco',la:14.634,lo:-90.539},
+  {id:'LA-C11',tipo:'Cable aéreo',pais:'Panamá',proyecto:'Cable San Miguelito (Panamá)',entidad:'Metro Panamá',objeto:'Teleférico urbano en San Miguelito, integrado al metro',estado:'En licitación',fecha:'2023',adj:'No disponible',ciudad:'Panamá, Panamá',la:9.050,lo:-79.475},
+  {id:'LA-C12',tipo:'Cable aéreo',pais:'Rep. Dominicana',proyecto:'Teleférico Santo Domingo',entidad:'FITRAM',objeto:'Sistema de teleférico urbano en Santo Domingo',estado:'Operando',fecha:'2015',adj:'FITRAM',ciudad:'Santo Domingo, Rep. Dom.',la:18.500,lo:-69.990},
+  {id:'LA-C13',tipo:'Cable aéreo',pais:'Rep. Dominicana',proyecto:'Teleférico Santiago RD',entidad:'FITRAM',objeto:'Sistema de teleférico urbano en Santiago de los Caballeros',estado:'Operando',fecha:'2021',adj:'FITRAM',ciudad:'Santiago, Rep. Dom.',la:19.451,lo:-70.693},
+  // FERREOS
+  {id:'LA-F01',tipo:'Férreo',pais:'Colombia',proyecto:'Metro de Medellín (Líneas A y B)',entidad:'Metro de Medellín',objeto:'Construcción y operación sistema metro pesado Medellín',estado:'Operando',fecha:'1982',adj:'Consorcio Hispano-Alemán Metromed',ciudad:'Medellín, Colombia',la:6.250,lo:-75.572},
+  {id:'LA-F02',tipo:'Férreo',pais:'Colombia',proyecto:'Metro de Bogotá Línea 1 (PLMB)',entidad:'Empresa Metro de Bogotá',objeto:'Concesión integral primera línea del metro de Bogotá',estado:'En construcción',fecha:'2019',adj:'APCA Metro Capital',ciudad:'Bogotá D.C., Colombia',la:4.627,lo:-74.097},
+  {id:'LA-F03',tipo:'Férreo',pais:'Colombia',proyecto:'Regiotram de Occidente',entidad:'Empresa Férrea Regional S.A.S.',objeto:'Tren de cercanías Bogotá–Facatativá',estado:'En construcción',fecha:'2019',adj:'CCECC',ciudad:'Cundinamarca, Colombia',la:4.600,lo:-74.155},
+  {id:'LA-F04',tipo:'Férreo',pais:'Colombia',proyecto:'Metro de la 80 (Medellín)',entidad:'Metro de Medellín',objeto:'Segunda línea del metro de Medellín, corredor Av. 80',estado:'En construcción',fecha:'2022',adj:'U.T. Metro de la 80 (CRRC, Mota-Engil)',ciudad:'Medellín, Colombia',la:6.261,lo:-75.598},
+  {id:'LA-F05',tipo:'Férreo',pais:'Perú',proyecto:'Metro Línea 2 Lima',entidad:'Concesionaria Metro Línea 2',objeto:'Segunda línea del metro de Lima, corredor este–oeste',estado:'En construcción',fecha:'2014',adj:'Concesionaria Metro Línea 2',ciudad:'Lima, Perú',la:-12.046,lo:-77.090},
+  {id:'LA-F06',tipo:'Férreo',pais:'Ecuador',proyecto:'Metro de Quito (Línea 1)',entidad:'EOMMT',objeto:'Primera línea del metro de Quito, corredor norte–sur',estado:'Operando',fecha:'2022',adj:'EOMMT',ciudad:'Quito, Ecuador',la:-0.220,lo:-78.512},
+  {id:'LA-F07',tipo:'Férreo',pais:'Panamá',proyecto:'Metro Línea 3 Panamá (Monorriel)',entidad:'Metro de Panamá',objeto:'Tercera línea del metro de Panamá, monorriel',estado:'En construcción',fecha:'2020',adj:'Consorcio HPH',ciudad:'Panamá, Panamá',la:9.010,lo:-79.530},
+  {id:'LA-F08',tipo:'Férreo',pais:'Chile',proyecto:'Metro Línea 7 Santiago',entidad:'Metro de Santiago',objeto:'Nueva línea 7 del metro de Santiago',estado:'En construcción',fecha:'2021',adj:'Alstom / OHLA',ciudad:'Santiago, Chile',la:-33.437,lo:-70.655},
+  {id:'LA-F09',tipo:'Férreo',pais:'Brasil',proyecto:'Metro Línea 6 São Paulo',entidad:'Metro São Paulo',objeto:'Línea 6 del metro de São Paulo – Laranja',estado:'En construcción',fecha:'2020',adj:'Acciona',ciudad:'São Paulo, Brasil',la:-23.560,lo:-46.700},
+];
+
+var map=L.map('map').setView([0,-65],3);
+L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png',{attribution:'OpenStreetMap | CARTO',maxZoom:18}).addTo(map);
+
+function mkI(d){
+  var t=getCat(d.tipo),sc=scol(d.estado);
+  return L.divIcon({className:'',html:
+    '<div style="position:relative;width:34px;height:34px">'+
+    '<div style="width:34px;height:34px;background:'+t.color+';border-radius:8px;box-shadow:0 2px 8px rgba(0,0,0,.3);display:flex;align-items:center;justify-content:center;font-size:18px;border:2px solid rgba(255,255,255,.95)">'+t.icon+'</div>'+
+    '<div style="position:absolute;bottom:-2px;right:-2px;width:11px;height:11px;border-radius:50%;background:'+sc+';border:2px solid #fff"></div>'+
+    '</div>',iconSize:[34,34],iconAnchor:[17,17],popupAnchor:[0,-20]});
+}
+
+function mkP(d){
+  var t=getCat(d.tipo),sc=scol(d.estado),sl=slbl(d.estado);
+  return '<div class="pp-top" style="background:'+t.color+'">'+
+    '<div class="pp-ico">'+t.icon+'</div>'+
+    '<div class="pp-tm"><h3>'+d.proyecto+'</h3><small>'+d.tipo+' · '+d.ciudad+'</small></div></div>'+
+    '<div class="pp-body">'+
+    '<span class="pp-code">'+d.id+'</span>'+
+    '<span class="sp" style="background:'+sc+'22;color:'+sc+'">'+sl+'</span>'+
+    '<div class="pp-r" style="margin-top:6px"><b>Entidad contratante:</b> '+d.entidad+'</div>'+
+    '<div class="pp-r"><b>Fecha apertura:</b> '+d.fecha+'</div>'+
+    '<div class="pp-r"><b>Ciudad / País:</b> '+d.ciudad+'</div>'+
+    '<div class="pp-obj"><b>Objeto:</b> '+d.objeto+'</div>'+
+    '<div class="pp-adj">👤 Adjudicatario: '+d.adj+'</div>'+
+    '</div>';
+}
+
+var layers=[];
+function render(f){
+  layers.forEach(function(l){map.removeLayer(l)});layers=[];
+  var items=D.filter(function(d){
+    if(f==='all') return true;
+    if(f==='col') return d.pais==='Colombia';
+    if(f==='bra') return d.pais==='Brasil';
+    if(f==='mex') return d.pais==='México';
+    if(f==='per') return d.pais==='Perú';
+    if(f==='brt') return d.tipo==='BRT';
+    if(f==='cable') return d.tipo==='Cable aéreo';
+    if(f==='ferreo') return d.tipo==='Férreo';
+    return true;
+  });
+  items.forEach(function(d){
+    var m=L.marker([d.la,d.lo],{icon:mkI(d)}).addTo(map);
+    m.bindPopup(mkP(d),{maxWidth:370});
+    layers.push(m);
+  });
+  if(layers.length) map.fitBounds(L.featureGroup(layers).getBounds().pad(.12));
+  bList(items);
+}
+function sv(v,el){
+  document.querySelectorAll('.nav button').forEach(function(b){b.classList.remove('active')});
+  if(el) el.classList.add('active');
+  render(v);
+}
+function bList(items){
+  var el=document.getElementById('pl');el.innerHTML='';
+  items.forEach(function(d){
+    var t=getCat(d.tipo);
+    var div=document.createElement('div');div.className='pi';
+    div.innerHTML='<div class="mic" style="background:'+t.color+'">'+t.icon+'</div>'+
+      '<div><div class="pn">'+d.proyecto+'</div><div class="pc">'+d.id+' · '+d.ciudad+' · '+d.fecha+'</div></div>';
+    div.onclick=function(){
+      map.setView([d.la,d.lo],10);
+      setTimeout(function(){layers.forEach(function(l){if(l.getLatLng&&Math.abs(l.getLatLng().lat-d.la)<.02)l.openPopup()})},300);
+    };
+    el.appendChild(div);
+  });
+}
+render('all');
+</script>
+</body>
+</html>
