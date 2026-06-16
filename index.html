@@ -3,238 +3,425 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Vigilancia Histórica — Latinoamérica</title>
-<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<title>Mapa de Oportunidades de Recaudo — Cívica</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" />
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
 <style>
-*{margin:0;padding:0;box-sizing:border-box}
-body{font-family:'Segoe UI',Arial,sans-serif}
-.hdr{background:linear-gradient(135deg,#1F4E79,#2E75B6);color:#fff;padding:10px 20px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px}
-.hdr h1{font-size:16px;font-weight:600}.hdr p{font-size:11px;opacity:.8}
-.nav{display:flex;gap:4px;flex-wrap:wrap}
-.nav button{background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.25);color:#fff;padding:5px 13px;border-radius:6px;cursor:pointer;font-size:12px;transition:all .2s}
-.nav button:hover,.nav button.active{background:#fff;color:#1F4E79;font-weight:600}
-#map{height:calc(100vh - 46px);width:100%}
-.leaflet-popup-content-wrapper{border-radius:12px;box-shadow:0 4px 20px rgba(0,0,0,.2);padding:0;overflow:hidden}
-.leaflet-popup-content{margin:0;padding:0;min-width:300px;max-width:360px}
-.pp-top{min-height:62px;display:flex;align-items:center;gap:10px;padding:10px 14px}
-.pp-ico{width:38px;height:38px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:22px;background:rgba(255,255,255,.2);flex-shrink:0}
-.pp-tm h3{font-size:13px;font-weight:600;color:#fff;line-height:1.3;margin:0}.pp-tm small{font-size:10px;color:rgba(255,255,255,.85)}
-.pp-body{padding:8px 14px 12px}
-.pp-code{display:inline-block;background:#1F4E79;color:#fff;font-size:9px;padding:1px 6px;border-radius:3px;margin-bottom:4px}
-.sp{display:inline-block;font-size:9px;padding:2px 7px;border-radius:10px;font-weight:600;margin-left:5px}
-.pp-r{font-size:11px;margin:3px 0;color:#444;line-height:1.4}.pp-r b{color:#1F4E79}
-.pp-obj{font-size:10px;color:#555;margin-top:6px;padding:6px 8px;background:#f0f4f8;border-radius:5px;border-left:3px solid #1F4E79;line-height:1.4}
-.pp-adj{margin-top:5px;font-size:10px;color:#1a5276;font-weight:600;padding:4px 0}
-.lgd{position:absolute;bottom:20px;left:10px;background:rgba(255,255,255,.96);backdrop-filter:blur(8px);padding:8px 12px;border-radius:10px;box-shadow:0 2px 10px rgba(0,0,0,.14);z-index:1000;max-width:210px}
-.lgd-title{font-size:11px;color:#1F4E79;font-weight:600;margin-bottom:6px;cursor:pointer;display:flex;align-items:center;justify-content:space-between}
-.lgd-grid{display:flex;flex-direction:column;gap:4px}
-.lgd-chip{display:flex;align-items:center;gap:6px;font-size:10px;color:#333;background:#f4f6f8;padding:3px 8px 3px 4px;border-radius:5px}
-.ci{width:20px;height:20px;border-radius:5px;display:flex;align-items:center;justify-content:center;font-size:12px;flex-shrink:0}
-.lgd.collapsed .lgd-grid{display:none}
-.sidebar{position:absolute;top:0;right:0;width:270px;height:100%;background:#fff;z-index:1001;overflow-y:auto;border-left:1px solid #ddd;display:none}
-.sidebar.open{display:block}
-.sidebar h3{padding:8px 12px;background:#1F4E79;color:#fff;font-size:12px;position:sticky;top:0;display:flex;justify-content:space-between;align-items:center;z-index:2}
-.sidebar h3 span{cursor:pointer;font-size:16px}
-.pi{padding:6px 10px;border-bottom:1px solid #f0f0f0;cursor:pointer;display:flex;align-items:center;gap:7px;transition:background .15s}
-.pi:hover{background:#f4f7fa}
-.mic{width:22px;height:22px;border-radius:5px;display:flex;align-items:center;justify-content:center;font-size:13px;color:#fff;flex-shrink:0}
-.pn{font-weight:600;color:#1F4E79;font-size:10px;line-height:1.2}
-.pc{font-size:9px;color:#999}
+  :root{
+    --navy:#1F3864;
+    --teal:#2E75B6;
+    --green:#2E7D32;
+    --green-bg:#C6EFCE;
+    --yellow:#9C6500;
+    --yellow-bg:#FFEB9C;
+    --red:#9C0006;
+    --red-bg:#FFC7CE;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin:0; padding:0; height:100%; font-family: Arial, Helvetica, sans-serif; color:#222; }
+  #app { display:flex; flex-direction:column; height:100vh; }
+  header {
+    background: var(--navy); color:#fff; padding: 14px 20px;
+    display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:10px;
+  }
+  header h1 { font-size: 18px; margin:0; font-weight:700; }
+  header p { margin:2px 0 0; font-size: 12px; color:#cdd9f0; }
+  .legend {
+    display:flex; gap:14px; align-items:center; flex-wrap:wrap; font-size:12px;
+  }
+  .legend .item { display:flex; align-items:center; gap:6px; }
+  .dot { width:14px; height:14px; border-radius:50%; display:inline-block; border:2px solid rgba(255,255,255,0.6); }
+  .dot.alta { background: var(--green); }
+  .dot.media { background: var(--yellow); }
+  .dot.baja { background: var(--red); }
+  #main { flex:1; display:flex; min-height:0; }
+  #map { flex:1; }
+  #sidebar {
+    width: 360px; max-width: 38vw; background:#fafbfc; border-left:1px solid #ddd;
+    overflow-y:auto; padding: 14px;
+  }
+  #sidebar h2 { font-size:14px; color:var(--navy); margin: 4px 0 10px; }
+  .filter-row { display:flex; gap:6px; margin-bottom:10px; flex-wrap:wrap; }
+  .filter-btn {
+    border:1px solid #ccc; background:#fff; border-radius:14px; padding:4px 10px;
+    font-size:11px; cursor:pointer; color:#444;
+  }
+  .filter-btn.active.alta { background:var(--green-bg); border-color:var(--green); color:var(--green); }
+  .filter-btn.active.media { background:var(--yellow-bg); border-color:var(--yellow); color:var(--yellow); }
+  .filter-btn.active.baja { background:var(--red-bg); border-color:var(--red); color:var(--red); }
+  .filter-btn.active.todas { background:#e3eaf6; border-color:var(--teal); color:var(--navy); }
+  .city-card {
+    border:1px solid #e2e2e2; border-radius:8px; padding:10px 12px; margin-bottom:8px;
+    cursor:pointer; transition: box-shadow .15s, border-color .15s; background:#fff;
+  }
+  .city-card:hover { box-shadow:0 2px 8px rgba(0,0,0,0.08); border-color: var(--teal); }
+  .city-card .name { font-weight:700; font-size:13px; color:var(--navy); }
+  .city-card .meta { font-size:11px; color:#777; margin-top:2px; }
+  .badge { display:inline-block; font-size:10px; font-weight:700; border-radius:10px; padding:1px 8px; margin-left:6px; }
+  .badge.alta { background:var(--green-bg); color:var(--green); }
+  .badge.media { background:var(--yellow-bg); color:var(--yellow); }
+  .badge.baja { background:var(--red-bg); color:var(--red); }
+  .leaflet-popup-content { font-size: 12px; line-height:1.45; max-width: 290px; }
+  .leaflet-popup-content h3 { margin:0 0 4px; font-size:14px; color:var(--navy); }
+  .leaflet-popup-content .row { margin-bottom:4px; }
+  .leaflet-popup-content .lbl { font-weight:700; color:#555; }
+  .pill {
+    display:inline-block; font-size:10px; font-weight:700; border-radius:10px; padding:1px 8px; color:#fff;
+  }
+  .contact-box {
+    margin-top:8px; padding:8px 10px; border-radius:6px; background:#F2F6FC; border:1px solid #d7e3f4;
+  }
+  .contact-box.sin-contacto { background:#f5f5f5; border-color:#e0e0e0; }
+  .contact-box h4 {
+    margin:0 0 4px; font-size:11px; text-transform:uppercase; letter-spacing:.04em; color:var(--teal);
+  }
+  .contact-box.sin-contacto h4 { color:#999; }
+  .contact-pill {
+    display:inline-block; font-size:10px; font-weight:700; border-radius:10px; padding:1px 8px; margin-bottom:4px;
+  }
+  .contact-pill.identificado { background:var(--green-bg); color:var(--green); }
+  .contact-pill.sin { background:#e0e0e0; color:#666; }
+  .contact-box a { color: var(--teal); word-break:break-all; }
+  footer { font-size:10px; color:#999; text-align:center; padding:6px; background:#fafbfc; border-top:1px solid #eee; }
+  @media (max-width: 760px) {
+    #main { flex-direction:column; }
+    #sidebar { width:100%; max-width:100%; max-height:42vh; border-left:none; border-top:1px solid #ddd; }
+  }
 </style>
 </head>
 <body>
-<div class="hdr">
-  <div><h1>Vigilancia Histórica de Proyectos — Latinoamérica</h1><p>BRT · Cables Aéreos · Férreos | 1972–2026 · 58 proyectos</p></div>
-  <div class="nav">
-    <button class="active" onclick="sv('all',this)">🌎 Todos</button>
-    <button onclick="sv('col',this)">🇨🇴 Colombia</button>
-    <button onclick="sv('bra',this)">🇧🇷 Brasil</button>
-    <button onclick="sv('mex',this)">🇲🇽 México</button>
-    <button onclick="sv('per',this)">🇵🇪 Perú</button>
-    <button onclick="sv('brt',this)">🚌 BRT</button>
-    <button onclick="sv('cable',this)">🚡 Cables</button>
-    <button onclick="sv('ferreo',this)">🚇 Férreos</button>
-    <button onclick="document.getElementById('sb').classList.toggle('open')">☰ Lista</button>
+<div id="app">
+  <header>
+    <div>
+      <h1>Mapa de Oportunidades de Recaudo — Cívica (Metro de Medellín)</h1>
+      <p>Vigilancia comercial · Filtro de cualificación de ciudades · Direccionamiento OQ3.2</p>
+    </div>
+    <div class="legend">
+      <div class="item"><span class="dot alta"></span> Alta prioridad</div>
+      <div class="item"><span class="dot media"></span> Media prioridad</div>
+      <div class="item"><span class="dot baja"></span> Baja / en investigación</div>
+    </div>
+  </header>
+  <div id="main">
+    <div id="map"></div>
+    <div id="sidebar">
+      <h2>Ciudades (<span id="count"></span>)</h2>
+      <div class="filter-row">
+        <button class="filter-btn active todas" data-f="todas">Todas</button>
+        <button class="filter-btn alta" data-f="Alta">Alta</button>
+        <button class="filter-btn media" data-f="Media">Media</button>
+        <button class="filter-btn baja" data-f="Baja">Baja</button>
+      </div>
+      <div id="list"></div>
+    </div>
   </div>
+  <footer>
+    Fuente: Vigilancia Comercial Recaudo Transporte Colombia · Matriz_Oportunidades_Recaudo_Civica.xlsx · Direccionamiento Estratégico 2026 (OQ3.2 Cívica) — actualizado 2026-06-11
+  </footer>
 </div>
-<div style="position:relative">
-<div id="map"></div>
-<div id="lgd" class="lgd">
-  <div class="lgd-title" onclick="this.parentElement.classList.toggle('collapsed')">Leyenda <span>▾</span></div>
-  <div class="lgd-grid">
-    <div class="lgd-chip"><div class="ci" style="background:#E8541A">🚌</div>BRT / Corredores</div>
-    <div class="lgd-chip"><div class="ci" style="background:#1A7EA8">🚡</div>Cable aéreo / Teleférico</div>
-    <div class="lgd-chip"><div class="ci" style="background:#6B35A8">🚇</div>Férreo / Metro</div>
-    <hr style="border:none;border-top:0.5px solid #ddd;margin:3px 0">
-    <div class="lgd-chip"><div class="ci" style="background:#16a34a;font-size:8px">●</div><span>Operando</span></div>
-    <div class="lgd-chip"><div class="ci" style="background:#d97706;font-size:8px">●</div><span>En construcción / ejecución</span></div>
-    <div class="lgd-chip"><div class="ci" style="background:#dc2626;font-size:8px">●</div><span>Cancelado</span></div>
-    <div class="lgd-chip"><div class="ci" style="background:#6b7280;font-size:8px">●</div><span>En estructuración</span></div>
-  </div>
-</div>
-<div id="sb" class="sidebar">
-  <h3>Lista de proyectos <span onclick="document.getElementById('sb').classList.remove('open')">✕</span></h3>
-  <div id="pl"></div>
-</div>
-</div>
-<script>
-function getCat(tipo){
-  if(tipo.includes('Cable')||tipo.includes('elef')) return {color:'#1A7EA8',icon:'🚡'};
-  if(tipo.includes('rreo')||tipo.includes('Metro')||tipo.includes('Tranv')||tipo.includes('Tren')||tipo.includes('norriel')) return {color:'#6B35A8',icon:'🚇'};
-  return {color:'#E8541A',icon:'🚌'};
-}
-function scol(e){
-  if(!e) return '#6b7280';
-  var s=e.toLowerCase();
-  if(s.includes('operand')||s.includes('operaci')) return '#16a34a';
-  if(s.includes('ejecuci')||s.includes('construcci')||s.includes('adjudic')||s.includes('licitaci')) return '#d97706';
-  if(s.includes('cancelad')) return '#dc2626';
-  return '#6b7280';
-}
-function slbl(e){
-  if(!e) return '';
-  var s=e.toLowerCase();
-  if(s.includes('operand')||s.includes('operaci')) return 'Operando';
-  if(s.includes('adjudic')) return 'Adjudicado';
-  if(s.includes('licitaci')) return 'En licitación';
-  if(s.includes('ejecuci')||s.includes('construcci')) return 'En construcción';
-  if(s.includes('cancelad')) return 'Cancelado';
-  if(s.includes('estructuraci')) return 'En estructuración';
-  return e;
-}
 
-var D=[
-  // BRT
-  {id:'LA-B01',tipo:'BRT',pais:'Brasil',proyecto:'RIT (Curitiba)',entidad:'URBS',objeto:'Sistema pionero de BRT — Red Integrada de Transporte de Curitiba',estado:'Operación',fecha:'1972',adj:'URBS',ciudad:'Curitiba, Brasil',la:-25.428,lo:-49.273},
-  {id:'LA-B02',tipo:'BRT',pais:'Brasil',proyecto:'SPTrans Corredores (ABD)',entidad:'SPTrans / EMTU',objeto:'Red de corredores segregados de autobús en São Paulo',estado:'Operación',fecha:'1980',adj:'SPTrans / EMTU',ciudad:'São Paulo, Brasil',la:-23.549,lo:-46.633},
-  {id:'LA-B03',tipo:'BRT',pais:'Brasil',proyecto:'Eixo Anhanguera (Goiânia)',entidad:'Metrobus / CMTC',objeto:'Corredor BRT Eixo Anhanguera integrado al sistema de transporte',estado:'Operación',fecha:'1990',adj:'Metrobus / CMTC',ciudad:'Goiânia, Brasil',la:-16.686,lo:-49.264},
-  {id:'LA-B04',tipo:'BRT',pais:'Brasil',proyecto:'Corredores POA (Porto Alegre)',entidad:'EPTC',objeto:'Corredores troncales de buses con carriles exclusivos',estado:'Operación',fecha:'1990',adj:'EPTC',ciudad:'Porto Alegre, Brasil',la:-30.033,lo:-51.230},
-  {id:'LA-B05',tipo:'BRT',pais:'Ecuador',proyecto:'Trolebús / Ecovía (Quito)',entidad:'EPMTPQ',objeto:'Corredores BRT con trolebús y articulados en Quito',estado:'Operación',fecha:'1995',adj:'EPMTPQ',ciudad:'Quito, Ecuador',la:-0.220,lo:-78.512},
-  {id:'LA-B06',tipo:'BRT',pais:'Colombia',proyecto:'TransMilenio (Bogotá)',entidad:'TransMilenio S.A.',objeto:'Sistema masivo BRT de Bogotá, red de troncales y alimentadoras',estado:'Operación',fecha:'1998',adj:'TransMilenio S.A.',ciudad:'Bogotá, Colombia',la:4.680,lo:-74.064},
-  {id:'LA-B07',tipo:'BRT',pais:'Colombia',proyecto:'MIO (Cali)',entidad:'Metrocali',objeto:'Sistema masivo de transporte integrado BRT de Cali',estado:'Operación',fecha:'2004',adj:'Metrocali',ciudad:'Cali, Colombia',la:3.420,lo:-76.530},
-  {id:'LA-B08',tipo:'BRT',pais:'Colombia',proyecto:'Metroplús (Medellín)',entidad:'Metro de Medellín',objeto:'Corredores BRT integrados al sistema metro del Valle de Aburrá',estado:'Operación',fecha:'2006',adj:'Metro de Medellín',ciudad:'Medellín, Colombia',la:6.230,lo:-75.590},
-  {id:'LA-B09',tipo:'BRT',pais:'Colombia',proyecto:'Transmetro (Barranquilla)',entidad:'Transmetro S.A.S.',objeto:'Sistema integrado de transporte masivo BRT de Barranquilla',estado:'Operación',fecha:'2004',adj:'Transmetro S.A.S.',ciudad:'Barranquilla, Colombia',la:10.980,lo:-74.800},
-  {id:'LA-B10',tipo:'BRT',pais:'Colombia',proyecto:'Metrolínea (Bucaramanga)',entidad:'Metrolínea',objeto:'Sistema integrado de transporte masivo BRT del Área Metropolitana',estado:'Operación',fecha:'2006',adj:'Metrolínea',ciudad:'Bucaramanga, Colombia',la:7.130,lo:-73.125},
-  {id:'LA-B11',tipo:'BRT',pais:'Colombia',proyecto:'Megabús (Pereira)',entidad:'Megabús S.A.',objeto:'Sistema integrado de transporte masivo BRT Pereira–Dosquebradas',estado:'Operación',fecha:'2004',adj:'Megabús S.A.',ciudad:'Pereira, Colombia',la:4.813,lo:-75.694},
-  {id:'LA-B12',tipo:'BRT',pais:'Colombia',proyecto:'Transcaribe (Cartagena)',entidad:'Transcaribe',objeto:'Sistema integrado de transporte masivo BRT de Cartagena',estado:'Operación',fecha:'2006',adj:'Transcaribe',ciudad:'Cartagena, Colombia',la:10.400,lo:-75.510},
-  {id:'LA-B13',tipo:'BRT',pais:'Venezuela',proyecto:'BusCaracas',entidad:'Metro de Caracas',objeto:'Sistema BRT de Caracas integrado al metro',estado:'Operación',fecha:'2008',adj:'Metro de Caracas',ciudad:'Caracas, Venezuela',la:10.480,lo:-66.900},
-  {id:'LA-B14',tipo:'BRT',pais:'Venezuela',proyecto:'Tromerca (Mérida)',entidad:'Tromerca',objeto:'Sistema de transporte BRT en Mérida',estado:'Operación',fecha:'2005',adj:'Tromerca',ciudad:'Mérida, Venezuela',la:8.598,lo:-71.144},
-  {id:'LA-B15',tipo:'BRT',pais:'Venezuela',proyecto:'Transbarca (Barquisimeto)',entidad:'Transbarca',objeto:'Sistema de transporte BRT en Barquisimeto',estado:'Operación',fecha:'2005',adj:'Transbarca',ciudad:'Barquisimeto, Venezuela',la:10.068,lo:-69.359},
-  {id:'LA-B16',tipo:'BRT',pais:'Ecuador',proyecto:'Metrovía (Guayaquil)',entidad:'Fundación Metrovía',objeto:'Sistema BRT de Guayaquil con corredores exclusivos',estado:'Operación',fecha:'2004',adj:'Fundación Metrovía',ciudad:'Guayaquil, Ecuador',la:-2.170,lo:-79.922},
-  {id:'LA-B17',tipo:'BRT',pais:'Perú',proyecto:'Metropolitano (Lima)',entidad:'ATU',objeto:'Corredor BRT Lima con estaciones elevadas y articulados',estado:'Operación',fecha:'2006',adj:'ATU',ciudad:'Lima, Perú',la:-12.046,lo:-77.042},
-  {id:'LA-B18',tipo:'BRT',pais:'Brasil',proyecto:'MOVE (Belo Horizonte)',entidad:'BHTRANS',objeto:'Sistema BRT de Belo Horizonte para Copa del Mundo 2014',estado:'Operación',fecha:'2010',adj:'BHTRANS',ciudad:'Belo Horizonte, Brasil',la:-19.916,lo:-43.934},
-  {id:'LA-B19',tipo:'BRT',pais:'Brasil',proyecto:'Via Livre (Recife)',entidad:'Grande Recife Consórcio',objeto:'Sistema BRT de Recife con corredores exclusivos',estado:'Operación',fecha:'2012',adj:'Grande Recife Consórcio',ciudad:'Recife, Brasil',la:-8.054,lo:-34.881},
-  {id:'LA-B20',tipo:'BRT',pais:'Brasil',proyecto:'Expresso DF (Brasilia)',entidad:'DFTrans',objeto:'Sistema BRT del Distrito Federal brasileño',estado:'Operación',fecha:'2011',adj:'DFTrans',ciudad:'Brasilia, Brasil',la:-15.779,lo:-47.929},
-  {id:'LA-B21',tipo:'BRT',pais:'Brasil',proyecto:'BRT Campinas',entidad:'EMDEC',objeto:'Sistema BRT en Campinas con corredores segregados',estado:'Operación',fecha:'2016',adj:'EMDEC',ciudad:'Campinas, Brasil',la:-22.905,lo:-47.063},
-  {id:'LA-B22',tipo:'BRT',pais:'Brasil',proyecto:'BRT Fortaleza',entidad:'ETUFOR',objeto:'Corredores de transporte masivo BRT en Fortaleza',estado:'Operación',fecha:'2014',adj:'ETUFOR',ciudad:'Fortaleza, Brasil',la:-3.717,lo:-38.543},
-  {id:'LA-B23',tipo:'BRT',pais:'Brasil',proyecto:'BRT Belém',entidad:'Semob',objeto:'Sistema BRT en Belém del Pará',estado:'Operación',fecha:'2012',adj:'Semob',ciudad:'Belém, Brasil',la:-1.455,lo:-48.490},
-  {id:'LA-B24',tipo:'BRT',pais:'Brasil',proyecto:'TransOceânica / BHLS (Niterói)',entidad:'Niterói Transportes',objeto:'Sistema BRT Niterói–Maricá corredor de alta velocidad',estado:'Operación',fecha:'2015',adj:'Niterói Transportes',ciudad:'Niterói, Brasil',la:-22.883,lo:-43.104},
-  {id:'LA-B25',tipo:'BRT',pais:'Bolivia',proyecto:'BRT Santa Cruz',entidad:'No disponible',objeto:'Sistema BRT proyectado para Santa Cruz de la Sierra',estado:'Cancelado',fecha:'2019',adj:'No disponible',ciudad:'Santa Cruz, Bolivia',la:-17.783,lo:-63.182},
-  {id:'LA-B26',tipo:'BRT',pais:'Guatemala',proyecto:'Transmetro (Guatemala)',entidad:'Municipalidad de Guatemala',objeto:'Sistema BRT de Ciudad de Guatemala con carriles exclusivos',estado:'Operación',fecha:'2005',adj:'Municipalidad de Guatemala',ciudad:'Ciudad de Guatemala, Guatemala',la:14.641,lo:-90.513},
-  {id:'LA-B27',tipo:'BRT',pais:'El Salvador',proyecto:'SITRAMSS (San Salvador)',entidad:'VMT / Consorcios',objeto:'Sistema integrado de transporte masivo de San Salvador',estado:'Cancelado',fecha:'2013',adj:'VMT / Consorcios',ciudad:'San Salvador, El Salvador',la:13.692,lo:-89.218},
-  {id:'LA-B28',tipo:'BRT',pais:'Honduras',proyecto:'Trans 450 (Tegucigalpa)',entidad:'No disponible',objeto:'Sistema BRT proyectado para Tegucigalpa',estado:'Cancelado',fecha:'2010',adj:'No disponible',ciudad:'Tegucigalpa, Honduras',la:14.099,lo:-87.206},
-  {id:'LA-B29',tipo:'BRT',pais:'Nicaragua',proyecto:'Corredores IRTRANMA (Managua)',entidad:'IRTRANMA',objeto:'Corredores troncales de transporte masivo en Managua',estado:'Operación',fecha:'2020',adj:'IRTRANMA',ciudad:'Managua, Nicaragua',la:12.114,lo:-86.236},
-  {id:'LA-B30',tipo:'BRT',pais:'Costa Rica',proyecto:'Sistema de Sectorización (San José)',entidad:'No disponible',objeto:'Corredores segregados en área metropolitana de San José',estado:'En estructuración',fecha:'2020',adj:'No disponible',ciudad:'San José, Costa Rica',la:9.935,lo:-84.084},
-  {id:'LA-B31',tipo:'BRT',pais:'Panamá',proyecto:'Metro Bus (Ciudad de Panamá)',entidad:'MiBus',objeto:'Sistema de transporte troncal integrado de la Ciudad de Panamá',estado:'Operación',fecha:'2010',adj:'MiBus',ciudad:'Ciudad de Panamá, Panamá',la:8.994,lo:-79.519},
-  {id:'LA-B32',tipo:'BRT',pais:'Puerto Rico',proyecto:'AMA / BRT PR-52 (San Juan)',entidad:'No disponible',objeto:'Sistema BRT en el corredor PR-52 de San Juan',estado:'En estructuración',fecha:'2020',adj:'No disponible',ciudad:'San Juan, Puerto Rico',la:18.466,lo:-66.105},
-  {id:'LA-B33',tipo:'BRT',pais:'Jamaica',proyecto:'JUTC Express / BRT (Kingston)',entidad:'No disponible',objeto:'Sistema troncal de transporte masivo en Kingston',estado:'En estructuración',fecha:'2023',adj:'No disponible',ciudad:'Kingston, Jamaica',la:17.997,lo:-76.793},
-  // CABLES
-  {id:'LA-C01',tipo:'Cable aéreo',pais:'Colombia',proyecto:'Metrocable Medellín (Línea K)',entidad:'Metro de Medellín',objeto:'Sistema de cables urbanos integrado al metro, sector nororiental',estado:'Operando',fecha:'2002',adj:'POMA / Metro Medellín',ciudad:'Medellín, Colombia',la:6.293,lo:-75.554},
-  {id:'LA-C02',tipo:'Cable aéreo',pais:'Colombia',proyecto:'Cable San Cristóbal (Bogotá)',entidad:'TransMilenio S.A.',objeto:'Cable aéreo urbano en San Cristóbal, integrado al SITP',estado:'En construcción',fecha:'2023',adj:'No disponible',ciudad:'Bogotá, Colombia',la:4.555,lo:-74.095},
-  {id:'LA-C03',tipo:'Cable aéreo',pais:'Colombia',proyecto:'Cable Manizales',entidad:'Infi-Manizales',objeto:'Sistema de cables urbanos de Manizales',estado:'Operando',fecha:'2008',adj:'Leitner',ciudad:'Manizales, Colombia',la:5.070,lo:-75.518},
-  {id:'LA-C04',tipo:'Cable aéreo',pais:'Colombia',proyecto:'MIO Cable (Siloé, Cali)',entidad:'Metrocali',objeto:'Cable aéreo integrado al MIO en ladera Siloé',estado:'Operando',fecha:'2010',adj:'Metrocali',ciudad:'Cali, Colombia',la:3.455,lo:-76.556},
-  {id:'LA-C05',tipo:'Cable aéreo',pais:'Venezuela',proyecto:'Metrocable Caracas',entidad:'Metro Caracas',objeto:'Sistema de teleférico urbano integrado al metro de Caracas',estado:'Operando',fecha:'2007',adj:'Metro Caracas',ciudad:'Caracas, Venezuela',la:10.495,lo:-66.887},
-  {id:'LA-C06',tipo:'Cable aéreo',pais:'Ecuador',proyecto:'Aerovía Guayaquil',entidad:'Municipio de Guayaquil',objeto:'Cable aéreo sobre el río Guayas, Guayaquil',estado:'Operando',fecha:'2018',adj:'POMA',ciudad:'Guayaquil, Ecuador',la:-2.165,lo:-79.932},
-  {id:'LA-C07',tipo:'Cable aéreo',pais:'Bolivia',proyecto:'Mi Teleférico (La Paz)',entidad:'Empresa Estatal de Transporte por Cable',objeto:'Sistema de teleférico urbano de La Paz–El Alto, mayor del mundo',estado:'Operando',fecha:'2012',adj:'Empresa Estatal',ciudad:'La Paz, Bolivia',la:-16.500,lo:-68.147},
-  {id:'LA-C08',tipo:'Cable aéreo',pais:'México',proyecto:'Mexicable (Ecatepec)',entidad:'SITRAMYTEM',objeto:'Cable aéreo urbano en Ecatepec, Estado de México',estado:'Operando',fecha:'2014',adj:'SITRAMYTEM',ciudad:'Ecatepec, México',la:19.601,lo:-99.050},
-  {id:'LA-C09',tipo:'Cable aéreo',pais:'México',proyecto:'Mexicable Línea 3 (Naucalpan)',entidad:'SITRAMYTEM',objeto:'Tercera línea de cable aéreo en el Estado de México',estado:'En construcción',fecha:'2023',adj:'SITRAMYTEM',ciudad:'Naucalpan, México',la:19.476,lo:-99.237},
-  {id:'LA-C10',tipo:'Cable aéreo',pais:'Guatemala',proyecto:'AeroMetro Guatemala',entidad:'Municipalidad de Guatemala',objeto:'Cable aéreo urbano Guatemala–Mixco',estado:'En construcción',fecha:'2020',adj:'Doppelmayr',ciudad:'Guatemala / Mixco',la:14.634,lo:-90.539},
-  {id:'LA-C11',tipo:'Cable aéreo',pais:'Panamá',proyecto:'Cable San Miguelito (Panamá)',entidad:'Metro Panamá',objeto:'Teleférico urbano en San Miguelito, integrado al metro',estado:'En licitación',fecha:'2023',adj:'No disponible',ciudad:'Panamá, Panamá',la:9.050,lo:-79.475},
-  {id:'LA-C12',tipo:'Cable aéreo',pais:'Rep. Dominicana',proyecto:'Teleférico Santo Domingo',entidad:'FITRAM',objeto:'Sistema de teleférico urbano en Santo Domingo',estado:'Operando',fecha:'2015',adj:'FITRAM',ciudad:'Santo Domingo, Rep. Dom.',la:18.500,lo:-69.990},
-  {id:'LA-C13',tipo:'Cable aéreo',pais:'Rep. Dominicana',proyecto:'Teleférico Santiago RD',entidad:'FITRAM',objeto:'Sistema de teleférico urbano en Santiago de los Caballeros',estado:'Operando',fecha:'2021',adj:'FITRAM',ciudad:'Santiago, Rep. Dom.',la:19.451,lo:-70.693},
-  // FERREOS
-  {id:'LA-F01',tipo:'Férreo',pais:'Colombia',proyecto:'Metro de Medellín (Líneas A y B)',entidad:'Metro de Medellín',objeto:'Construcción y operación sistema metro pesado Medellín',estado:'Operando',fecha:'1982',adj:'Consorcio Hispano-Alemán Metromed',ciudad:'Medellín, Colombia',la:6.250,lo:-75.572},
-  {id:'LA-F02',tipo:'Férreo',pais:'Colombia',proyecto:'Metro de Bogotá Línea 1 (PLMB)',entidad:'Empresa Metro de Bogotá',objeto:'Concesión integral primera línea del metro de Bogotá',estado:'En construcción',fecha:'2019',adj:'APCA Metro Capital',ciudad:'Bogotá D.C., Colombia',la:4.627,lo:-74.097},
-  {id:'LA-F03',tipo:'Férreo',pais:'Colombia',proyecto:'Regiotram de Occidente',entidad:'Empresa Férrea Regional S.A.S.',objeto:'Tren de cercanías Bogotá–Facatativá',estado:'En construcción',fecha:'2019',adj:'CCECC',ciudad:'Cundinamarca, Colombia',la:4.600,lo:-74.155},
-  {id:'LA-F04',tipo:'Férreo',pais:'Colombia',proyecto:'Metro de la 80 (Medellín)',entidad:'Metro de Medellín',objeto:'Segunda línea del metro de Medellín, corredor Av. 80',estado:'En construcción',fecha:'2022',adj:'U.T. Metro de la 80 (CRRC, Mota-Engil)',ciudad:'Medellín, Colombia',la:6.261,lo:-75.598},
-  {id:'LA-F05',tipo:'Férreo',pais:'Perú',proyecto:'Metro Línea 2 Lima',entidad:'Concesionaria Metro Línea 2',objeto:'Segunda línea del metro de Lima, corredor este–oeste',estado:'En construcción',fecha:'2014',adj:'Concesionaria Metro Línea 2',ciudad:'Lima, Perú',la:-12.046,lo:-77.090},
-  {id:'LA-F06',tipo:'Férreo',pais:'Ecuador',proyecto:'Metro de Quito (Línea 1)',entidad:'EOMMT',objeto:'Primera línea del metro de Quito, corredor norte–sur',estado:'Operando',fecha:'2022',adj:'EOMMT',ciudad:'Quito, Ecuador',la:-0.220,lo:-78.512},
-  {id:'LA-F07',tipo:'Férreo',pais:'Panamá',proyecto:'Metro Línea 3 Panamá (Monorriel)',entidad:'Metro de Panamá',objeto:'Tercera línea del metro de Panamá, monorriel',estado:'En construcción',fecha:'2020',adj:'Consorcio HPH',ciudad:'Panamá, Panamá',la:9.010,lo:-79.530},
-  {id:'LA-F08',tipo:'Férreo',pais:'Chile',proyecto:'Metro Línea 7 Santiago',entidad:'Metro de Santiago',objeto:'Nueva línea 7 del metro de Santiago',estado:'En construcción',fecha:'2021',adj:'Alstom / OHLA',ciudad:'Santiago, Chile',la:-33.437,lo:-70.655},
-  {id:'LA-F09',tipo:'Férreo',pais:'Brasil',proyecto:'Metro Línea 6 São Paulo',entidad:'Metro São Paulo',objeto:'Línea 6 del metro de São Paulo – Laranja',estado:'En construcción',fecha:'2020',adj:'Acciona',ciudad:'São Paulo, Brasil',la:-23.560,lo:-46.700},
+<script>
+const COLORS = { Alta: '#2E7D32', Media: '#9C6500', Baja: '#9C0006' };
+const BG = { Alta: '#C6EFCE', Media: '#FFEB9C', Baja: '#FFC7CE' };
+
+const cities = [
+  {
+    nombre: "Ibagué", depto: "Tolima", lat: 4.4389, lng: -75.2322, nivel: "Alta", score: 6,
+    enteGestor: "Por definir (rediseño SETP tras crisis TransMusical/Infotic)",
+    estado: "SETP en rediseño tras crisis con el operador tecnológico (Infotic). Intervención institucional en curso.",
+    presupuesto: "Estudio de rediseño ~$298M; inversión de modernización del recaudo aún por definir (alta).",
+    presion: "Alto (sustitución de operador tecnológico)",
+    oportunidad: "Posicionar a Cívica/Metro como operador de recaudo de referencia ante el nuevo ente gestor que resulte del rediseño SETP.",
+    kr: "KR2 - Ampliar alcance ecosistema (equipos fuera VdA)",
+    contacto: { estado: "Sin contacto", nombre: null, cargo: null, medio: null, notas: null }
+  },
+  {
+    nombre: "Montería", depto: "Córdoba", lat: 8.7479, lng: -75.8814, nivel: "Alta", score: 6,
+    enteGestor: "Por definir (rediseño 'Ciudad Amable', Decreto 1079)",
+    estado: "Sistema 'Ciudad Amable' en proceso de rediseño operativo y tecnológico, con 3 operadores independientes.",
+    presupuesto: "Por definir según resultado del rediseño; nicho de recaudo unificado entre operadores.",
+    presion: "Medio-Alto (nicho)",
+    oportunidad: "Ofrecer plataforma de recaudo unificado para los 3 operadores existentes (Metrosinú, Monteriana Express, Monteriana Móvil).",
+    kr: "KR2 - Ampliar alcance ecosistema (equipos fuera VdA)",
+    contacto: { estado: "Sin contacto", nombre: null, cargo: null, medio: null, notas: null }
+  },
+  {
+    nombre: "Sincelejo", depto: "Sucre", lat: 9.3047, lng: -75.3978, nivel: "Alta", score: 6,
+    enteGestor: "Metro Sabanas",
+    estado: "Recursos SETP (CONPES 3637) retenidos por DNP a la espera de ejecución.",
+    presupuesto: "$15.827M (recursos SETP retenidos)",
+    presion: "Alto",
+    oportunidad: "Acompañar a Metro Sabanas en la liberación y ejecución de recursos SETP con componente de recaudo electrónico.",
+    kr: "KR2 - Ampliar alcance ecosistema (equipos fuera VdA)",
+    contacto: {
+      estado: "Contacto identificado",
+      nombre: "Álvaro Toro Barrios",
+      cargo: "Jefe de División Técnica",
+      medio: "LinkedIn: linkedin.com/in/alvaro-enrique-del-toro-barrios-575844112 (email no disponible)",
+      notas: "Ing. Civil Esp. Vías y Transporte, en el cargo desde 2016. Próxima acción: primer acercamiento por LinkedIn / validar correo institucional metrosabanas.gov.co (25/06/2026). Fuente: Apollo.io."
+    }
+  },
+  {
+    nombre: "Pasto", depto: "Nariño", lat: 1.2136, lng: -77.2811, nivel: "Alta", score: 6,
+    enteGestor: "Avante SETP",
+    estado: "FET aprobado; renovación de flota en curso (~250 vehículos a chatarrizar de >400).",
+    presupuesto: "$16.825M (FET aprobado)",
+    presion: "Alto",
+    oportunidad: "Suministro de equipos de recaudo para la flota renovada del SETP, alineado con la meta de equipos fuera del Valle de Aburrá.",
+    kr: "KR2 - Ampliar alcance ecosistema (equipos fuera VdA)",
+    contacto: {
+      estado: "Contacto identificado",
+      nombre: "Jaime Cifuentes García",
+      cargo: "Plan Maestro de Movilidad y Espacio Público",
+      medio: "jaime.cifuentesgarcia@avante.gov.co (email extrapolado, confianza media)",
+      notas: "Alterno: Eduardo Aranda, Socio Gerente (Managing Partner) - eduardo.aranda@avante.gov.co (extrapolado, perfil con base reportada en Argentina, validar). Próxima acción: enviar correo de presentación institucional (25/06/2026). Fuente: Apollo.io."
+    }
+  },
+  {
+    nombre: "Popayán", depto: "Cauca", lat: 2.4448, lng: -76.6147, nivel: "Alta", score: 5.5,
+    enteGestor: "Movilidad Futura",
+    estado: "'Movilidad Futura' en fase piloto; recaudo mixto efectivo/tarjeta; ~305 buses proyectados.",
+    presupuesto: "Piloto en evaluación, sin cifra publicada.",
+    presion: "Medio",
+    oportunidad: "Apoyar la transición del piloto hacia recaudo electrónico generalizado, evitando monopolio de un único proveedor tecnológico.",
+    kr: "KR2 - Ampliar alcance ecosistema (equipos fuera VdA)",
+    contacto: {
+      estado: "Contacto identificado",
+      nombre: "María Alegría Velasco",
+      cargo: "Jefe de Operaciones (Chief of Operations)",
+      medio: "LinkedIn: linkedin.com/in/maria-fernanda-alegria-velasco-67bb821a6 | Tel. organización: +57 2 820 5898 (email no disponible)",
+      notas: "Alterna: Ximena Erazo Gómez, Líder Financiera - LinkedIn disponible (email no disponible). Próxima acción: primer acercamiento por LinkedIn o teléfono institucional movilidadfutura.gov.co (25/06/2026). Fuente: Apollo.io."
+    }
+  },
+  {
+    nombre: "Neiva", depto: "Huila", lat: 2.9273, lng: -75.2819, nivel: "Alta", score: 6,
+    enteGestor: "Ente gestor SETP en estructuración (UMUS/SISETU)",
+    estado: "Decreto 0528/2025 ordena la estructuración del SETP.",
+    presupuesto: "$30.000M asignados (Decreto 0528/2025)",
+    presion: "Alto",
+    oportunidad: "Posicionar a Cívica como referente técnico para la estructuración del componente de recaudo del nuevo SETP.",
+    kr: "KR2 - Ampliar alcance ecosistema (equipos fuera VdA)",
+    contacto: { estado: "Sin contacto", nombre: null, cargo: null, medio: null, notas: null }
+  },
+  {
+    nombre: "Valledupar", depto: "Cesar", lat: 10.4631, lng: -73.2532, nivel: "Media", score: 3,
+    enteGestor: "SIVA",
+    estado: "SIVA ya implementado (188 buses GNV + 130 nuevos); sistema en fase OPEX/mantenimiento.",
+    presupuesto: "Sistema ya ejecutado; posible inversión incremental en analítica de datos.",
+    presion: "Bajo (mantenimiento)",
+    oportunidad: "Explorar venta de servicios de datos/analítica sobre el sistema ya digitalizado (vínculo con Cívica 3.0 / Fintech).",
+    kr: "KR1 - Potenciar plataforma actual",
+    contacto: {
+      estado: "Sin contacto",
+      nombre: null, cargo: null, medio: null,
+      notas: "No identificado en Apollo.io (búsqueda jun-2026, sin coincidencias para 'SIVA Valledupar'). Pendiente investigación manual."
+    }
+  },
+  {
+    nombre: "Santa Marta", depto: "Magdalena", lat: 11.2408, lng: -74.1990, nivel: "Alta", score: 5.5,
+    enteGestor: "Extech S.A.S. (SEM)",
+    estado: "Implementación de electromovilidad y recaudo en curso (meta 80% recaudo digital).",
+    presupuesto: "Inversión en flota eléctrica y recaudo en curso (cifra no publicada).",
+    presion: "Bajo-Medio (fase OPEX)",
+    oportunidad: "Ofrecer interoperabilidad/integración de Cívica con el sistema de recaudo de Extech como puerta de entrada al Caribe.",
+    kr: "KR2 - Ampliar alcance ecosistema (equipos fuera VdA)",
+    contacto: {
+      estado: "Sin contacto",
+      nombre: null, cargo: null, medio: null,
+      notas: "No identificado en Apollo.io (búsqueda jun-2026, sin coincidencias para 'Extech'). Pendiente investigación manual."
+    }
+  },
+  {
+    nombre: "Armenia", depto: "Quindío", lat: 4.5339, lng: -75.6811, nivel: "Alta", score: 6,
+    enteGestor: "Amable E.I.C.E.",
+    estado: "Digitalización de recaudo lenta; alta frustración ciudadana con el sistema actual.",
+    presupuesto: "Fondo de Estabilización (FEX), cifra no publicada.",
+    presion: "Medio-Alto",
+    oportunidad: "Acelerar la digitalización del recaudo de Amable E.I.C.E. con la plataforma Cívica.",
+    kr: "KR2 - Ampliar alcance ecosistema (equipos fuera VdA)",
+    contacto: {
+      estado: "Sin contacto",
+      nombre: null, cargo: null, medio: null,
+      notas: "No identificado en Apollo.io (búsqueda jun-2026, sin coincidencias para 'Amable EICE'). Pendiente investigación manual."
+    }
+  },
+  {
+    nombre: "Bucaramanga (AMB)", depto: "Santander", lat: 7.1193, lng: -73.1227, nivel: "Alta", score: 6,
+    enteGestor: "Área Metropolitana de Bucaramanga (SITME)",
+    estado: "SITME en construcción tras la liquidación de Metrolínea.",
+    presupuesto: "$8.331M (fondo SITME)",
+    presion: "Alto (rescate institucional)",
+    oportunidad: "Participar como proveedor de recaudo en la estructuración del nuevo SITME del Área Metropolitana de Bucaramanga.",
+    kr: "KR2 - Ampliar alcance ecosistema (equipos fuera VdA)",
+    contacto: {
+      estado: "Contacto identificado",
+      nombre: "Willie Cadena",
+      cargo: "Asesor Dirección",
+      medio: "LinkedIn: linkedin.com/in/willie-cadena-8784b6197 | www.amb.gov.co (email no disponible)",
+      notas: "Alterna: Mercedes Camargo Velandia, Asesora Banco de Proyectos - LinkedIn disponible (email no disponible). Próxima acción: primer acercamiento por LinkedIn / canal institucional AMB (25/06/2026). Fuente: Apollo.io."
+    }
+  },
+  {
+    nombre: "Villavicencio", depto: "Meta", lat: 4.1420, lng: -73.6266, nivel: "Alta", score: 5.5,
+    enteGestor: "Por definir (transitorio Decreto 409/2023)",
+    estado: "Maduración hacia SETP formal sin ente gestor consolidado (empresas individuales).",
+    presupuesto: "Sin cifra definida; etapa de maduración institucional.",
+    presion: "Medio (transitorio)",
+    oportunidad: "Posicionarse tempranamente ante el Distrito Especial mientras se define el ente gestor del futuro SETP.",
+    kr: "KR2 - Ampliar alcance ecosistema (equipos fuera VdA)",
+    contacto: { estado: "Sin contacto", nombre: null, cargo: null, medio: null, notas: null }
+  },
+  {
+    nombre: "Antioquia / Cívica — expansión intermunicipal", depto: "Antioquia (fuera VdA)", lat: 6.2442, lng: -75.5812, nivel: "Alta", score: 5.5,
+    enteGestor: "Operadores intermunicipales (Comutran, Sotraretiro, Combuses, Transunidos, Flota El Carmen) / AMVA",
+    estado: "Ejecución directa de la meta Cívica 2027: 594 equipos en sistemas intermunicipales de cercanías.",
+    presupuesto: "Incluido dentro de la meta de inversión Cívica 2027-2028.",
+    presion: "N/A (ejecución interna)",
+    oportunidad: "Desplegar equipos de recaudo Cívica en rutas intermunicipales (Oriente, Urabá, Suroeste), base para escalar a otras ciudades.",
+    kr: "KR2 - Ampliar alcance ecosistema (intermunicipal)",
+    contacto: { estado: "Sin contacto", nombre: null, cargo: null, medio: null, notas: null }
+  },
+  {
+    nombre: "Buenaventura", depto: "Valle del Cauca", lat: 3.8801, lng: -77.0312, nivel: "Media", score: 3.5,
+    enteGestor: "Por definir (mesa Mintransporte/DIMAR)",
+    estado: "Mesa de trabajo Mintransporte/DIMAR sobre gobernanza del transporte. Decreto tarifario 103/2024.",
+    presupuesto: "Sin información de inversión en recaudo (pendiente investigación).",
+    presion: "Por determinar",
+    oportunidad: "Monitorear evolución de la mesa de gobernanza; sin ente gestor de recaudo consolidado aún para abordar comercialmente.",
+    kr: "Monitoreo / sin KR directo aún",
+    contacto: { estado: "Sin contacto", nombre: null, cargo: null, medio: null, notas: null }
+  },
+  {
+    nombre: "Riohacha", depto: "La Guajira", lat: 11.5444, lng: -72.9072, nivel: "Baja", score: 1,
+    enteGestor: "Pendiente investigación",
+    estado: "Sin información específica 2025-2026 sobre procesos SETP o ente gestor.",
+    presupuesto: "Pendiente investigación.",
+    presion: "Por determinar",
+    oportunidad: "Pendiente de investigación para determinar si existe oportunidad concreta de recaudo en el corto plazo.",
+    kr: "Monitoreo / sin KR directo aún",
+    contacto: {
+      estado: "Sin contacto",
+      nombre: null, cargo: null, medio: null,
+      notas: "Pendiente investigación."
+    }
+  }
 ];
 
-var map=L.map('map').setView([0,-65],3);
-L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png',{attribution:'OpenStreetMap | CARTO',maxZoom:18}).addTo(map);
+const map = L.map('map', { scrollWheelZoom: true }).setView([5.5, -74.5], 6);
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+  attribution: '&copy; OpenStreetMap contributors',
+  maxZoom: 18
+}).addTo(map);
 
-function mkI(d){
-  var t=getCat(d.tipo),sc=scol(d.estado);
-  return L.divIcon({className:'',html:
-    '<div style="position:relative;width:34px;height:34px">'+
-    '<div style="width:34px;height:34px;background:'+t.color+';border-radius:8px;box-shadow:0 2px 8px rgba(0,0,0,.3);display:flex;align-items:center;justify-content:center;font-size:18px;border:2px solid rgba(255,255,255,.95)">'+t.icon+'</div>'+
-    '<div style="position:absolute;bottom:-2px;right:-2px;width:11px;height:11px;border-radius:50%;background:'+sc+';border:2px solid #fff"></div>'+
-    '</div>',iconSize:[34,34],iconAnchor:[17,17],popupAnchor:[0,-20]});
-}
+const markers = {};
 
-function mkP(d){
-  var t=getCat(d.tipo),sc=scol(d.estado),sl=slbl(d.estado);
-  return '<div class="pp-top" style="background:'+t.color+'">'+
-    '<div class="pp-ico">'+t.icon+'</div>'+
-    '<div class="pp-tm"><h3>'+d.proyecto+'</h3><small>'+d.tipo+' · '+d.ciudad+'</small></div></div>'+
-    '<div class="pp-body">'+
-    '<span class="pp-code">'+d.id+'</span>'+
-    '<span class="sp" style="background:'+sc+'22;color:'+sc+'">'+sl+'</span>'+
-    '<div class="pp-r" style="margin-top:6px"><b>Entidad contratante:</b> '+d.entidad+'</div>'+
-    '<div class="pp-r"><b>Fecha apertura:</b> '+d.fecha+'</div>'+
-    '<div class="pp-r"><b>Ciudad / País:</b> '+d.ciudad+'</div>'+
-    '<div class="pp-obj"><b>Objeto:</b> '+d.objeto+'</div>'+
-    '<div class="pp-adj">👤 Adjudicatario: '+d.adj+'</div>'+
-    '</div>';
-}
-
-var layers=[];
-function render(f){
-  layers.forEach(function(l){map.removeLayer(l)});layers=[];
-  var items=D.filter(function(d){
-    if(f==='all') return true;
-    if(f==='col') return d.pais==='Colombia';
-    if(f==='bra') return d.pais==='Brasil';
-    if(f==='mex') return d.pais==='México';
-    if(f==='per') return d.pais==='Perú';
-    if(f==='brt') return d.tipo==='BRT';
-    if(f==='cable') return d.tipo==='Cable aéreo';
-    if(f==='ferreo') return d.tipo==='Férreo';
-    return true;
-  });
-  items.forEach(function(d){
-    var m=L.marker([d.la,d.lo],{icon:mkI(d)}).addTo(map);
-    m.bindPopup(mkP(d),{maxWidth:370});
-    layers.push(m);
-  });
-  if(layers.length) map.fitBounds(L.featureGroup(layers).getBounds().pad(.12));
-  bList(items);
-}
-function sv(v,el){
-  document.querySelectorAll('.nav button').forEach(function(b){b.classList.remove('active')});
-  if(el) el.classList.add('active');
-  render(v);
-}
-function bList(items){
-  var el=document.getElementById('pl');el.innerHTML='';
-  items.forEach(function(d){
-    var t=getCat(d.tipo);
-    var div=document.createElement('div');div.className='pi';
-    div.innerHTML='<div class="mic" style="background:'+t.color+'">'+t.icon+'</div>'+
-      '<div><div class="pn">'+d.proyecto+'</div><div class="pc">'+d.id+' · '+d.ciudad+' · '+d.fecha+'</div></div>';
-    div.onclick=function(){
-      map.setView([d.la,d.lo],10);
-      setTimeout(function(){layers.forEach(function(l){if(l.getLatLng&&Math.abs(l.getLatLng().lat-d.la)<.02)l.openPopup()})},300);
-    };
-    el.appendChild(div);
+function makeIcon(nivel) {
+  const color = COLORS[nivel] || '#999';
+  return L.divIcon({
+    className: '',
+    html: `<div style="
+      width:22px;height:22px;border-radius:50%;
+      background:${color}; border:3px solid #fff;
+      box-shadow:0 1px 4px rgba(0,0,0,0.4);"></div>`,
+    iconSize: [22,22],
+    iconAnchor: [11,11],
+    popupAnchor: [0,-11]
   });
 }
-render('all');
+
+// Convierte emails, URLs y enlaces de LinkedIn dentro de un texto en links clicables
+function linkify(text) {
+  if (!text) return '';
+  let out = text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  // emails
+  out = out.replace(/([\w.+-]+@[\w-]+\.[\w.-]+)/g, '<a href="mailto:$1">$1</a>');
+  // linkedin.com/... o www.xxx.gov.co (sin protocolo)
+  out = out.replace(/(^|[\s|])((?:www\.)?(?:linkedin\.com|[\w-]+\.gov\.co)\/[^\s|]+|(?:www\.)[\w-]+\.gov\.co)/g,
+    (m, pre, url) => `${pre}<a href="https://${url.replace(/^https?:\/\//,'')}" target="_blank" rel="noopener">${url}</a>`);
+  return out;
+}
+
+function contactoHtml(c) {
+  const k = c.contacto;
+  if (!k || k.estado === 'Sin contacto') {
+    return `
+    <div class="contact-box sin-contacto">
+      <h4>Contacto de prospección</h4>
+      <span class="contact-pill sin">Sin contacto</span>
+      ${k && k.notas ? `<div class="row">${linkify(k.notas)}</div>` : ''}
+    </div>`;
+  }
+  return `
+    <div class="contact-box">
+      <h4>Contacto de prospección</h4>
+      <span class="contact-pill identificado">${k.estado}</span>
+      <div class="row"><span class="lbl">Nombre:</span> ${k.nombre}</div>
+      <div class="row"><span class="lbl">Cargo:</span> ${k.cargo}</div>
+      <div class="row"><span class="lbl">Contacto:</span> ${linkify(k.medio)}</div>
+      ${k.notas ? `<div class="row"><span class="lbl">Notas:</span> ${linkify(k.notas)}</div>` : ''}
+    </div>`;
+}
+
+function popupHtml(c) {
+  return `
+    <h3>${c.nombre}</h3>
+    <div class="row"><span class="lbl">Departamento:</span> ${c.depto}</div>
+    <div class="row"><span class="pill" style="background:${COLORS[c.nivel]}">${c.nivel} prioridad (score ${c.score}/6)</span></div>
+    <div class="row"><span class="lbl">Ente gestor:</span> ${c.enteGestor}</div>
+    <div class="row"><span class="lbl">Estado / evento gatillo:</span> ${c.estado}</div>
+    <div class="row"><span class="lbl">Presupuesto / inversión:</span> ${c.presupuesto}</div>
+    <div class="row"><span class="lbl">Presión B2G:</span> ${c.presion}</div>
+    <div class="row"><span class="lbl">Oportunidad para Cívica:</span> ${c.oportunidad}</div>
+    <div class="row"><span class="lbl">KR Cívica:</span> ${c.kr}</div>
+    ${contactoHtml(c)}
+  `;
+}
+
+cities.forEach(c => {
+  const m = L.marker([c.lat, c.lng], { icon: makeIcon(c.nivel) }).addTo(map);
+  m.bindPopup(popupHtml(c));
+  markers[c.nombre] = m;
+});
+
+const listEl = document.getElementById('list');
+const countEl = document.getElementById('count');
+let activeFilter = 'todas';
+
+function renderList() {
+  listEl.innerHTML = '';
+  const filtered = cities.filter(c => activeFilter === 'todas' || c.nivel === activeFilter);
+  countEl.textContent = filtered.length;
+  filtered.forEach(c => {
+    const card = document.createElement('div');
+    card.className = 'city-card';
+    card.innerHTML = `
+      <div class="name">${c.nombre} <span class="badge ${c.nivel.toLowerCase()}">${c.nivel}</span></div>
+      <div class="meta">${c.depto} · score ${c.score}/6</div>
+    `;
+    card.addEventListener('click', () => {
+      map.setView([c.lat, c.lng], 9, { animate: true });
+      markers[c.nombre].openPopup();
+    });
+    listEl.appendChild(card);
+  });
+}
+
+document.querySelectorAll('.filter-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    activeFilter = btn.dataset.f;
+    renderList();
+    Object.values(markers).forEach(m => map.removeLayer(m));
+    cities.forEach(c => {
+      if (activeFilter === 'todas' || c.nivel === activeFilter) {
+        markers[c.nombre].addTo(map);
+      }
+    });
+  });
+});
+
+renderList();
 </script>
 </body>
 </html>
